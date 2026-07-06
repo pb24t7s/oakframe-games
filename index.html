@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oakframe Games — Sturdy systems for Unity</title>
+<meta name="description" content="Oakframe Games builds developer tools for Unity — save systems, inventory systems, and the unglamorous plumbing your game needs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --graphite: #1C1B18;
+    --graphite-2: #26241F;
+    --parchment: #EDE6D6;
+    --oak: #B8763E;
+    --oak-light: #D89B5F;
+    --sage: #7A8B5C;
+    --cream-text: #F2EEE3;
+    --ink: #2A2823;
+    --line: rgba(242,238,227,0.14);
+    --line-dark: rgba(28,27,24,0.12);
+    --max: 1080px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    background: var(--graphite);
+    color: var(--cream-text);
+    font-family: 'Space Grotesk', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono{
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  a{color:inherit;}
+
+  /* subtle wood-grain texture via layered radial lines */
+  .grain{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    opacity:0.05;
+    background-image: repeating-linear-gradient(
+      100deg,
+      transparent 0px,
+      transparent 60px,
+      var(--oak-light) 60px,
+      transparent 62px
+    );
+    z-index:0;
+  }
+
+  header{
+    position: sticky;
+    top:0;
+    z-index: 50;
+    background: rgba(28,27,24,0.88);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .nav{
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 18px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:600;
+    font-size:1.05rem;
+    letter-spacing:-0.01em;
+    text-decoration:none;
+  }
+
+  .brand svg{width:26px; height:26px; flex-shrink:0;}
+
+  .navlinks{
+    display:flex;
+    gap:32px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.8rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+
+  .navlinks a{
+    text-decoration:none;
+    color: rgba(242,238,227,0.65);
+    transition: color 0.2s ease;
+    position:relative;
+  }
+  .navlinks a:hover, .navlinks a:focus-visible{ color: var(--oak-light); }
+
+  /* ============ HERO ============ */
+
+  .hero{
+    position:relative;
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 96px 28px 80px;
+    display:grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 48px;
+    align-items:center;
+    z-index:1;
+  }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color: var(--oak-light);
+    margin-bottom: 18px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:22px;
+    height:1px;
+    background: var(--oak-light);
+    display:inline-block;
+  }
+
+  h1{
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight:700;
+    line-height:1.05;
+    letter-spacing:-0.02em;
+    margin-bottom: 22px;
+  }
+
+  h1 em{
+    font-style:normal;
+    color: var(--oak-light);
+  }
+
+  .lede{
+    font-size:1.08rem;
+    color: rgba(242,238,227,0.72);
+    max-width: 46ch;
+    margin-bottom: 34px;
+  }
+
+  .cta-row{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 13px 24px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.82rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    text-decoration:none;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+  }
+
+  .btn-primary{
+    background: var(--oak);
+    color: var(--graphite);
+    font-weight:600;
+  }
+  .btn-primary:hover{ background: var(--oak-light); transform: translateY(-1px); }
+
+  .btn-ghost{
+    border-color: var(--line);
+    color: var(--cream-text);
+  }
+  .btn-ghost:hover{ border-color: var(--oak-light); color: var(--oak-light); }
+
+  /* joint animation */
+  .joint-wrap{
+    position:relative;
+    height: 280px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .joint-wrap svg{ width:100%; height:100%; max-width:340px; }
+
+  .beam-a, .beam-b{
+    transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .joint-wrap.animate .beam-a{ transform: translate(0,0); }
+  .joint-wrap.animate .beam-b{ transform: translate(0,0); }
+  .beam-a{ transform: translate(-38px, -14px); }
+  .beam-b{ transform: translate(38px, 14px); }
+
+  /* ============ SECTION SHARED ============ */
+
+  section{
+    position:relative;
+    z-index:1;
+  }
+
+  .section-inner{
+    max-width: var(--max);
+    margin:0 auto;
+    padding: 72px 28px;
+  }
+
+  .divider{
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  .divider-line{
+    height:1px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--line) 0px, var(--line) 8px, transparent 8px, transparent 16px
+    );
+  }
+
+  .section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap: 24px;
+    margin-bottom: 44px;
+    flex-wrap:wrap;
+  }
+
+  .section-title{
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+
+  .section-tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color: rgba(242,238,227,0.5);
+  }
+
+  /* ============ ABOUT / PRINCIPLES ============ */
+
+  .principles{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow:hidden;
+  }
+
+  .principle{
+    background: var(--graphite);
+    padding: 32px 28px;
+  }
+
+  .principle .num{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    color: var(--oak-light);
+    margin-bottom:16px;
+    display:block;
+  }
+
+  .principle h3{
+    font-size:1.15rem;
+    margin-bottom:10px;
+    font-weight:600;
+  }
+
+  .principle p{
+    color: rgba(242,238,227,0.65);
+    font-size:0.95rem;
+  }
+
+  /* ============ PRODUCTS ============ */
+
+  .products{
+    display:flex;
+    flex-direction:column;
+    gap:1px;
+    background: var(--line);
+    border:1px solid var(--line);
+    border-radius:4px;
+    overflow:hidden;
+  }
+
+  .product{
+    background: var(--graphite-2);
+    padding: 36px;
+    display:grid;
+    grid-template-columns: 90px 1fr auto;
+    gap: 28px;
+    align-items:center;
+  }
+
+  .product-icon{
+    width:64px; height:64px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: rgba(184,118,62,0.1);
+    border: 1px solid rgba(184,118,62,0.25);
+    border-radius:4px;
+  }
+
+  .product-icon svg{ width:32px; height:32px; }
+
+  .product-name{
+    font-size:1.3rem;
+    font-weight:700;
+    margin-bottom:6px;
+    letter-spacing:-0.01em;
+  }
+
+  .product-desc{
+    color: rgba(242,238,227,0.65);
+    font-size:0.95rem;
+    max-width:52ch;
+  }
+
+  .status{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    padding: 6px 12px;
+    border-radius:20px;
+    white-space:nowrap;
+    justify-self:end;
+  }
+
+  .status.dev{
+    background: rgba(184,118,62,0.15);
+    color: var(--oak-light);
+    border:1px solid rgba(184,118,62,0.3);
+  }
+
+  .status.soon{
+    background: rgba(122,139,92,0.12);
+    color: var(--sage);
+    border:1px solid rgba(122,139,92,0.28);
+  }
+
+  /* ============ SUPPORT / CTA STRIP ============ */
+
+  .cta-strip{
+    background: var(--parchment);
+    color: var(--ink);
+  }
+
+  .cta-strip .section-inner{
+    display:grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 48px;
+    align-items:center;
+  }
+
+  .cta-strip h2{
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight:700;
+    letter-spacing:-0.01em;
+    margin-bottom:14px;
+  }
+
+  .cta-strip p{
+    color: rgba(42,40,35,0.7);
+    max-width:46ch;
+  }
+
+  .support-links{
+    display:flex;
+    flex-direction:column;
+    gap: 14px;
+  }
+
+  .support-link{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 16px 20px;
+    background: rgba(42,40,35,0.04);
+    border: 1px solid var(--line-dark);
+    border-radius:4px;
+    text-decoration:none;
+    color: var(--ink);
+    font-weight:500;
+    transition: all 0.2s ease;
+  }
+
+  .support-link:hover{
+    background: rgba(184,118,62,0.1);
+    border-color: var(--oak);
+  }
+
+  .support-link .mono{
+    font-size:0.78rem;
+    color: rgba(42,40,35,0.5);
+  }
+
+  /* ============ FOOTER ============ */
+
+  footer{
+    border-top:1px solid var(--line);
+  }
+
+  .footer-inner{
+    max-width: var(--max);
+    margin:0 auto;
+    padding: 32px 28px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:16px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    color: rgba(242,238,227,0.45);
+  }
+
+  .footer-links{
+    display:flex;
+    gap:24px;
+  }
+  .footer-links a{ text-decoration:none; color: rgba(242,238,227,0.45); transition: color 0.2s;}
+  .footer-links a:hover{ color: var(--oak-light); }
+
+  /* ============ RESPONSIVE ============ */
+
+  @media (max-width: 860px){
+    .hero{ grid-template-columns: 1fr; padding-top:64px; }
+    .joint-wrap{ order:-1; height:200px; }
+    .principles{ grid-template-columns: 1fr; }
+    .product{ grid-template-columns: 56px 1fr; }
+    .product-icon{ width:48px; height:48px; }
+    .product-icon svg{ width:24px; height:24px; }
+    .status{ grid-column: 1 / -1; justify-self:start; margin-top:8px; }
+    .cta-strip .section-inner{ grid-template-columns:1fr; }
+    .navlinks{ gap:18px; font-size:0.72rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .beam-a, .beam-b{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<header>
+  <nav class="nav">
+    <a href="#" class="brand">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 26L14 8L18 8L26 26" stroke="#D89B5F" stroke-width="2.4" stroke-linejoin="round"/>
+        <path d="M10 26L14 16L18 16L22 26" stroke="#F2EEE3" stroke-width="2.4" stroke-linejoin="round"/>
+      </svg>
+      Oakframe Games
+    </a>
+    <div class="navlinks">
+      <a href="#about">About</a>
+      <a href="#products">Assets</a>
+      <a href="#support">Support</a>
+    </div>
+  </nav>
+</header>
+
+<section class="hero">
+  <div>
+    <div class="eyebrow mono">Unity Asset Store Publisher</div>
+    <h1>Sturdy systems<br>for <em>Unity</em>.</h1>
+    <p class="lede">We build the unglamorous plumbing — save systems, inventory, persistence — so you spend your hours on the game, not the joints holding it together.</p>
+    <div class="cta-row">
+      <a href="#products" class="btn btn-primary">View assets</a>
+      <a href="#support" class="btn btn-ghost">Join the Discord</a>
+    </div>
+  </div>
+  <div class="joint-wrap" id="jointWrap">
+    <svg viewBox="0 0 300 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- vertical beam -->
+      <g class="beam-a">
+        <rect x="128" y="20" width="44" height="140" rx="2" fill="#26241F" stroke="#B8763E" stroke-width="2"/>
+        <line x1="128" y1="140" x2="172" y2="140" stroke="#B8763E" stroke-width="1.5" stroke-dasharray="3 4"/>
+      </g>
+      <!-- horizontal beam -->
+      <g class="beam-b">
+        <rect x="60" y="128" width="180" height="44" rx="2" fill="#1C1B18" stroke="#D89B5F" stroke-width="2"/>
+        <line x1="150" y1="128" x2="150" y2="172" stroke="#D89B5F" stroke-width="1.5" stroke-dasharray="3 4"/>
+      </g>
+      <!-- joint pin -->
+      <circle cx="150" cy="150" r="7" fill="#7A8B5C"/>
+      <circle cx="150" cy="150" r="3" fill="#EDE6D6"/>
+      <!-- baseline -->
+      <line x1="40" y1="230" x2="260" y2="230" stroke="#F2EEE3" stroke-opacity="0.12" stroke-width="1"/>
+      <text x="150" y="256" text-anchor="middle" fill="#F2EEE3" fill-opacity="0.4" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="1">MORTISE &amp; TENON</text>
+    </svg>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<section id="about">
+  <div class="section-inner">
+    <div class="section-head">
+      <div>
+        <div class="section-tag mono">01 — About</div>
+        <div class="section-title">How we build</div>
+      </div>
+    </div>
+    <div class="principles">
+      <div class="principle">
+        <span class="num mono">NO LOCK-IN</span>
+        <h3>Stands on its own</h3>
+        <p>Every system works standalone — no dependency on a bigger framework you didn't ask for. Bring your own controller.</p>
+      </div>
+      <div class="principle">
+        <span class="num mono">CLEAR DOCS</span>
+        <h3>Respects your time</h3>
+        <p>Setup in minutes, not afternoons. Written docs plus short setup videos for every asset we ship.</p>
+      </div>
+      <div class="principle">
+        <span class="num mono">REAL SUPPORT</span>
+        <h3>Someone answers</h3>
+        <p>Questions get real replies within 24 hours — on Discord or email, from the person who wrote the code.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<section id="products">
+  <div class="section-inner">
+    <div class="section-head">
+      <div>
+        <div class="section-tag mono">02 — Catalog</div>
+        <div class="section-title">Assets</div>
+      </div>
+    </div>
+    <div class="products">
+      <div class="product">
+        <div class="product-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L3 7V17L12 22L21 17V7L12 2Z" stroke="#D89B5F" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M3 7L12 12L21 7" stroke="#D89B5F" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M12 22V12" stroke="#D89B5F" stroke-width="1.6"/>
+          </svg>
+        </div>
+        <div>
+          <div class="product-name">WorldSave</div>
+          <div class="product-desc">A scene and world-state save system. Persists opened doors, picked-up items, spawned objects, and NPC positions across scenes — not just raw variables. Save slots, autosave checkpoints, versioned files.</div>
+        </div>
+        <div class="status soon mono">Coming soon</div>
+      </div>
+      <div class="product">
+        <div class="product-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="8" height="8" rx="1" stroke="#D89B5F" stroke-width="1.6"/>
+            <rect x="13" y="3" width="8" height="8" rx="1" stroke="#D89B5F" stroke-width="1.6"/>
+            <rect x="3" y="13" width="8" height="8" rx="1" stroke="#D89B5F" stroke-width="1.6"/>
+            <rect x="13" y="13" width="8" height="4" rx="1" stroke="#D89B5F" stroke-width="1.6"/>
+          </svg>
+        </div>
+        <div>
+          <div class="product-name">Grid Inventory</div>
+          <div class="product-desc">A spatial, grid-based inventory with multi-slot item sizes, a shared item database, tabs, and crafting hooks. Zero framework dependencies — built on UI Toolkit.</div>
+        </div>
+        <div class="status dev mono">In development</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-strip" id="support">
+  <div class="section-inner">
+    <div>
+      <div class="section-tag mono" style="color:rgba(42,40,35,0.5);">03 — Support</div>
+      <h2>Stuck on a setup step?<br>Reach an actual person.</h2>
+      <p>Bug reports, integration questions, feature requests — all of it goes to the same inbox, and someone reads it.</p>
+    </div>
+    <div class="support-links">
+      <a href="mailto:support@oakframegames.com" class="support-link">
+        support@oakframegames.com
+        <span class="mono">Email →</span>
+      </a>
+      <a href="#" class="support-link">
+        Oakframe Games Discord
+        <span class="mono">Join →</span>
+      </a>
+      <a href="#" class="support-link">
+        Unity Asset Store profile
+        <span class="mono">Visit →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <span>© 2026 Oakframe Games</span>
+    <div class="footer-links">
+      <a href="#products">Assets</a>
+      <a href="#support">Support</a>
+      <a href="mailto:support@oakframegames.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // trigger the joint animation on load
+  window.addEventListener('load', () => {
+    const wrap = document.getElementById('jointWrap');
+    requestAnimationFrame(() => {
+      setTimeout(() => wrap.classList.add('animate'), 200);
+    });
+  });
+</script>
+
+</body>
+</html>
