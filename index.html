@@ -8,6 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <style>
   :root{
     --graphite: #1C1B18;
@@ -85,7 +88,7 @@
     text-decoration:none;
   }
 
-  .brand svg{width:26px; height:26px; flex-shrink:0;}
+  .brand-mark{width:30px; height:30px; flex-shrink:0; border-radius:50%;}
 
   .navlinks{
     display:flex;
@@ -441,6 +444,19 @@
     color: rgba(242,238,227,0.45);
   }
 
+  .footer-brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .footer-mark{
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    opacity:0.85;
+  }
+
   .footer-links{
     display:flex;
     gap:24px;
@@ -474,10 +490,7 @@
 <header>
   <nav class="nav">
     <a href="#" class="brand">
-      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M6 26L14 8L18 8L26 26" stroke="#D89B5F" stroke-width="2.4" stroke-linejoin="round"/>
-        <path d="M10 26L14 16L18 16L22 26" stroke="#F2EEE3" stroke-width="2.4" stroke-linejoin="round"/>
-      </svg>
+      <img src="assets/logo-mark.png" alt="Oakframe Games" class="brand-mark">
       Oakframe Games
     </a>
     <div class="navlinks">
@@ -620,7 +633,10 @@
 
 <footer>
   <div class="footer-inner">
-    <span>© 2026 Oakframe Games</span>
+    <div class="footer-brand">
+      <img src="assets/logo-mark.png" alt="Oakframe Games" class="footer-mark">
+      <span>© 2026 Oakframe Games</span>
+    </div>
     <div class="footer-links">
       <a href="#products">Assets</a>
       <a href="#support">Support</a>
